@@ -30,7 +30,7 @@ const Leaderboard = () => {
     const fetchData = async () => {
       setLoading(true);
       const res = await API.get('/results/leaderboard');
-      setLeaderboard(res.data.leaderboard || []);
+      setLeaderboard(res.data.data || []);
       setLoading(false);
     };
     fetchData();

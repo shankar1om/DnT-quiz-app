@@ -32,8 +32,8 @@ const UserProgressTracking = () => {
         API.get('/categories'),
         API.get('/quizzes'),
       ]);
-      setCategories(catRes.data.categories);
-      setQuizzes(quizRes.data.quizzes);
+      setCategories(catRes.data.data);
+      setQuizzes(quizRes.data.data);
       setLoading(false);
     };
     fetchData();

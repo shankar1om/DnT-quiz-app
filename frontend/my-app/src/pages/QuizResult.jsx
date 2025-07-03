@@ -98,8 +98,8 @@ const QuizResult = () => {
       if (!result || !quiz) {
         setLoading(true);
         const res = await API.get(`/results/${resultId}`);
-        setResult(res.data.result);
-        setQuiz(res.data.result.quiz); // quiz is populated in backend
+        setResult(res.data.data);
+        setQuiz(res.data.data.quiz); // quiz is populated in backend
         setLoading(false);
       }
     };

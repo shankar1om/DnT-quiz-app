@@ -1,112 +1,75 @@
-const Result = require('../models/result.model');
-const Quiz = require('../models/quiz.model');
-const Question = require('../models/question.model');
-const User = require('../models/user.model');
+const resultService = require('../services/result.service');
 
 // Submit a quiz attempt
 const submitResult = async (req, res) => {
   try {
-    const { user, quiz, answers } = req.body;
-    // Fetch all questions for the quiz
-    const quizDoc = await Quiz.findById(quiz).populate('questions');
-    if (!quizDoc) return res.status(404).json({ message: 'Quiz not found' });
-    let correctCount = 0, wrongCount = 0, attemptedCount = 0;
-    const answerDetails = answers.map(ans => {
-      const question = quizDoc.questions.find(q => q._id.toString() === ans.question);
-      let isCorrect = false;
-      if (question) {
-        attemptedCount++;
-        if (question.type === 'mcq') {
-          const correctOption = question.options.find(opt => opt.isCorrect);
-          isCorrect = correctOption && correctOption.text === ans.selected;
-        } else if (question.type === 'truefalse') {
-          isCorrect = question.correctAnswer === ans.selected;
-        }
-        if (isCorrect) correctCount++; else wrongCount++;
-      }
-      return {
-        question: ans.question,
-        selected: ans.selected,
-        isCorrect
-      };
+    const result = await resultService.submitResult(req.body);
+    res.status(201).json({
+      code: 201,
+      message: 'Result submitted',
+      data: result
     });
-    const score = correctCount;
-    // Check if result already exists for this user and quiz
-    let result = await Result.findOne({ user, quiz });
-    if (result) {
-      // Update existing result
-      result.answers = answerDetails;
-      result.score = score;
-      result.correctCount = correctCount;
-      result.wrongCount = wrongCount;
-      result.attemptedCount = attemptedCount;
-      result.submittedAt = new Date();
-      await result.save();
-    } else {
-      // Create new result
-      result = await Result.create({
-        user,
-        quiz,
-        answers: answerDetails,
-        score,
-        correctCount,
-        wrongCount,
-        attemptedCount
-      });
-      // Optionally, push to user's quizzesTaken
-      await User.findByIdAndUpdate(user, { $push: { quizzesTaken: result._id } });
-    }
-    res.status(201).json({ message: 'Result submitted', result });
   } catch (error) {
-    console.log('Error in submitResult:', error);
-    res.status(500).json({ message: 'Error submitting result', error });
+    res.status(error.status || 500).json({
+      code: error.status || 500,
+      message: 'Error submitting result',
+      error: error
+    });
   }
 };
 
 // Get all results for a user
 const getUserResults = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const results = await Result.find({ user: userId }).populate('quiz').lean();
-    console.log('Populated results:', results);
-    res.status(200).json({ results });
+    const results = await resultService.getUserResults(req.params.userId);
+    res.status(200).json({
+      code: 200,
+      message: 'User results fetched successfully',
+      metadata: { size: results.length },
+      data: results
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching user results', error });
+    res.status(500).json({
+      code: 500,
+      message: 'Error fetching user results',
+      error: error
+    });
   }
 };
 
 // Get a user's result for a specific quiz
 const getQuizResultForUser = async (req, res) => {
   try {
-    const { quizId, userId } = req.params;
-    const result = await Result.findOne({ quiz: quizId, user: userId }).populate('quiz').lean();
-    if (!result) return res.status(404).json({ message: 'Result not found' });
-    res.status(200).json({ result });
+    const result = await resultService.getQuizResultForUser(req.params.quizId, req.params.userId);
+    res.status(200).json({
+      code: 200,
+      message: 'Quiz result fetched successfully',
+      data: result
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching result', error });
+    res.status(error.status || 500).json({
+      code: error.status || 500,
+      message: 'Error fetching result',
+      error: error
+    });
   }
 };
 
 const getAllUserProgress = async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' }).select('_id username');
-    const quizzes = await Quiz.find().select('_id');
-    const results = await Result.find().select('user quiz');
-    // Map userId to set of completed quizIds
-    const userQuizMap = {};
-    results.forEach(r => {
-      if (!userQuizMap[r.user]) userQuizMap[r.user] = new Set();
-      userQuizMap[r.user].add(r.quiz.toString());
+    const leaderboard = await resultService.getAllUserProgress();
+    res.status(200).json({
+      code: 200,
+      message: 'Leaderboard fetched successfully',
+      metadata: { size: leaderboard.length },
+      data: leaderboard
     });
-    const leaderboard = users.map(u => {
-      const completed = userQuizMap[u._id]?.size || 0;
-      const total = quizzes.length;
-      const percent = total ? Math.round((completed / total) * 100) : 0;
-      return { _id: u._id, username: u.username, completed, total, percent };
-    });
-    res.json({ leaderboard });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching leaderboard', error });
+    res.status(500).json({
+      code: 500,
+      message: 'Error fetching leaderboard',
+      error: error
+    });
   }
 };
 

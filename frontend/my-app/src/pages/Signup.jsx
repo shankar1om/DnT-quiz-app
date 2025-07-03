@@ -20,12 +20,17 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await API.post('/user/signup', form);
-      setPopup({ type: 'success', message: 'Registration successful! Redirecting to login...' });
-      setTimeout(() => {
-        setPopup(null);
-        navigate('/login');
-      }, 2000);
+      const res = await API.post('/user/signup', form);
+      if (res.data.code === 201) {
+        setPopup({ type: 'success', message: res.data.message || 'Registration successful! Redirecting to login...' });
+        setTimeout(() => {
+          setPopup(null);
+          navigate('/login');
+        }, 2000);
+      } else {
+        setPopup({ type: 'error', message: res.data.message || 'Registration failed' });
+        setTimeout(() => setPopup(null), 2500);
+      }
     } catch (err) {
       setPopup({ type: 'error', message: err.response?.data?.message || 'Registration failed' });
       setTimeout(() => setPopup(null), 2500);

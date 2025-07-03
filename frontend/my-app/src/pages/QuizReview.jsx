@@ -32,7 +32,7 @@ const QuizReview = () => {
         quiz: quiz._id,
         answers: answerArr
       });
-      navigate(`/quiz-result/${res.data.result._id}`, { state: { result: res.data.result, quiz } });
+      navigate(`/quiz-result/${res.data.data._id}`, { state: { result: res.data.data, quiz } });
     } catch (err) {
       alert('Error submitting quiz. Please try again.');
     } finally {

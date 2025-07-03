@@ -3,58 +3,97 @@
 const Category = require('../models/category.model');
 const Quiz = require('../models/quiz.model');
 const Question = require('../models/question.model');
+const categoryService = require('../services/category.service');
 
 // Create a new category
 const createCategory = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
-    res.status(201).json({ message: 'Category created successfully', category });
+    const category = await categoryService.createCategory(req.body);
+    res.status(201).json({
+      code: 201,
+      message: 'Category created successfully',
+      data: category
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating category', error });
+    res.status(500).json({
+      code: 500,
+      message: 'Error creating category',
+      error: error
+    });
   }
 };
 
 // Get all categories
 const getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
-    res.status(200).json({ categories });
+    const categories = await categoryService.getAllCategories();
+    res.status(200).json({
+      code: 200,
+      message: 'Categories fetched successfully',
+      metadata: { size: categories.length },
+      data: categories
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching categories', error });
+    res.status(500).json({
+      code: 500,
+      message: 'Error fetching categories',
+      error: error
+    });
   }
 };
 
 // Update a category
 const updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!category) return res.status(404).json({ message: 'Category not found' });
-    res.status(200).json({ message: 'Category updated successfully', category });
+    const category = await categoryService.updateCategory(req.params.id, req.body);
+    res.status(200).json({
+      code: 200,
+      message: 'Category updated successfully',
+      data: category
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating category', error });
+    res.status(error.status || 500).json({
+      code: error.status || 500,
+      message: 'Error updating category',
+      error: error
+    });
   }
 };
 
 // Delete a category
 const deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
-    if (!category) return res.status(404).json({ message: 'Category not found' });
-    res.status(200).json({ message: 'Category deleted successfully' });
+    await categoryService.deleteCategory(req.params.id);
+    res.status(200).json({
+      code: 200,
+      message: 'Category deleted successfully',
+      data: null
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting category', error });
+    res.status(error.status || 500).json({
+      code: error.status || 500,
+      message: 'Error deleting category',
+      error: error
+    });
   }
 };
 
 // Get all questions for a category
 const getQuestionsForCategory = async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ category: req.params.id });
-    const quizIds = quizzes.map(q => q._id);
-    const questions = await Question.find({ quiz: { $in: quizIds } });
-    res.status(200).json({ questions });
+    const questions = await categoryService.getQuestionsForCategory(req.params.id);
+    res.status(200).json({
+      code: 200,
+      message: 'Questions fetched successfully',
+      metadata: { size: questions.length },
+      data: questions
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching questions for category', error });
+    res.status(500).json({
+      code: 500,
+      message: 'Error fetching questions for category',
+      error: error
+    });
   }
 };
 

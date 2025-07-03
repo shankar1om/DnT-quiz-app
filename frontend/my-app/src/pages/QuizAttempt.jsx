@@ -21,7 +21,7 @@ const QuizAttempt = () => {
       setError(null);
       try {
         const res = await API.get(`/quizzes/${quizId}`);
-        const quizData = res.data.quiz;
+        const quizData = res.data.data;
         
         // Check if quiz has questions
         if (!quizData.questions || quizData.questions.length === 0) {
@@ -91,7 +91,7 @@ const QuizAttempt = () => {
       });
       // Remove timer from localStorage on submit
       localStorage.removeItem(`quiz-timer-${quizId}`);
-      navigate(`/quiz-result/${res.data.result._id}`, { state: { result: res.data.result, quiz, autoSubmitted: true } });
+      navigate(`/quiz-result/${res.data.data._id}`, { state: { result: res.data.data, quiz, autoSubmitted: true } });
     } catch (err) {
       alert('Error submitting quiz. Please try again.');
     } finally {

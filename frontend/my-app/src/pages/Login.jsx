@@ -39,28 +39,28 @@ const Login = () => {
       });
       console.log('Login response:', res.data); // Debug log
       if (form.remember) {
-        if (res.data.user.role === 'admin') {
-          localStorage.setItem('admin_token', res.data.token);
-          localStorage.setItem('admin_user', JSON.stringify(res.data.user));
+        if (res.data.data.user.role === 'admin') {
+          localStorage.setItem('admin_token', res.data.data.token);
+          localStorage.setItem('admin_user', JSON.stringify(res.data.data.user));
         } else {
-          localStorage.setItem('user_token', res.data.token);
-          localStorage.setItem('user_user', JSON.stringify(res.data.user));
+          localStorage.setItem('user_token', res.data.data.token);
+          localStorage.setItem('user_user', JSON.stringify(res.data.data.user));
         }
       } else {
-        if (res.data.user.role === 'admin') {
-          sessionStorage.setItem('admin_token', res.data.token);
-          sessionStorage.setItem('admin_user', JSON.stringify(res.data.user));
+        if (res.data.data.user.role === 'admin') {
+          sessionStorage.setItem('admin_token', res.data.data.token);
+          sessionStorage.setItem('admin_user', JSON.stringify(res.data.data.user));
         } else {
-          sessionStorage.setItem('user_token', res.data.token);
-          sessionStorage.setItem('user_user', JSON.stringify(res.data.user));
+          sessionStorage.setItem('user_token', res.data.data.token);
+          sessionStorage.setItem('user_user', JSON.stringify(res.data.data.user));
         }
       }
-      dispatch(setUser({ user: res.data.user, token: res.data.token }));
+      dispatch(setUser({ user: res.data.data.user, token: res.data.data.token }));
       setPopup({ type: 'success', message: 'Login successful! Redirecting...' });
       setTimeout(() => {
         setPopup(null);
-        console.log('Navigating to:', res.data.user.role === 'admin' ? '/admin' : '/user-dashboard'); // Debug log
-        if (res.data.user.role === 'admin') {
+        console.log('Navigating to:', res.data.data.user.role === 'admin' ? '/admin' : '/user-dashboard'); // Debug log
+        if (res.data.data.user.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/user-dashboard');
